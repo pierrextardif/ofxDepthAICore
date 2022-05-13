@@ -52,6 +52,7 @@ namespace ofxDepthAICore{
 		// LR-check is required for depth alignment
 		stereo->setLeftRightCheck(true);
 		stereo->setDepthAlign(dai::CameraBoardSocket::RGB);
+		stereo->setExtendedDisparity(false);
 
 		auto config = stereo->initialConfig.get();
 		config.postProcessing.speckleFilter.enable = false;
@@ -61,8 +62,10 @@ namespace ofxDepthAICore{
 		config.postProcessing.spatialFilter.holeFillingRadius = 2;
 		config.postProcessing.spatialFilter.numIterations = 4;
 		config.postProcessing.thresholdFilter.minRange = 100;
-		config.postProcessing.thresholdFilter.maxRange = 3000;
+		config.postProcessing.thresholdFilter.maxRange = 10000;
 		config.postProcessing.decimationFilter.decimationFactor = 1;
+
+		
 		stereo->initialConfig.set(config);
 
 		// Linking
@@ -175,16 +178,12 @@ namespace ofxDepthAICore{
 				if(latestPacket.find(name) != latestPacket.end()) {
 					if(name == "depth") {
 						frame[name] = latestPacket[name]->getFrame();
-						// auto maxDisparity = stereo->initialConfig.getMaxDisparity();
-						// // Optional, extend range 0..95 -> 0..255, for a better visualisation
 						if(1) frame[name].convertTo(frame[name], CV_8UC1, 255. / maxDisparity);
-						// // Optional, apply false colorization
-						//if(1) cv::applyColorMap(frame[name], frame[name], cv::COLORMAP_HOT);
 						if(textures[name]==nullptr){
 							textures[name] = std::make_unique<ofxDepthAICore::DepthAITexConverter>();
-							// textures[name]->channels =1; 
 						}
 
+						// keep this 3 channels for Raspberry pi use.
             			if(frame[name].channels() < 3) {
                 			cv::cvtColor(frame[name], frame[name], cv::COLOR_GRAY2BGR);
 						}

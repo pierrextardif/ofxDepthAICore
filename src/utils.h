@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 
+#define SEMANTIC_CHANNELS GL_RGBA
 
 namespace ofxDepthAICore{
 	/*
@@ -13,6 +14,7 @@ namespace ofxDepthAICore{
 
 		ofTexture tex;
 		unsigned char* buffer = nullptr;
+		int32_t* extraBuff = nullptr;
 		int w = -1,h = -1;
 		int channels = -1;
 
@@ -55,6 +57,7 @@ namespace ofxDepthAICore{
 				setWH(w, h);
 			}
 			cv::Mat cvFrame = imgFrame->getCvFrame();
+			//cv::cvtColor(cvFrame, cvFrame, cv::COLOR_BGR2RGB);
 			updateBuffer(cvFrame.data);
 		}
 
@@ -66,10 +69,12 @@ namespace ofxDepthAICore{
 			}
 
 			std::vector<dai::TensorInfo> vecAllLayers = inNN->getAllLayers();
-			if(vecAllLayers.size() > 0){
-				std::vector<std::int32_t> layer1 = inNN->getFirstLayerInt32();
-            	if(layer1.size() > 0) {
-					//std::cout << "layer1.size() = " << ofToString(layer1.size()) << std::endl;
+
+			if (vecAllLayers.size() > 0) {
+
+				std::vector<std::int32_t> layer1 = inNN->getLayerInt32(vecAllLayers[0].name);
+				if (layer1.size() > 0) {
+
 					updateBuffer((uint8_t*)layer1.data());
 				}
 
@@ -88,14 +93,9 @@ namespace ofxDepthAICore{
 			{
 				tex.loadData(buffer, w, h, GL_RGB);
 			}else if(w != -1 && h != -1 && channels == 1){
-				tex.loadData(buffer, w, h, GL_LUMINANCE);
+				tex.loadData(buffer, w, h, SEMANTIC_CHANNELS);
 
 			}
-
-		}
-		void updateNNTexture()
-		{
-			if(w != -1 && h != -1 && buffer != nullptr)tex.loadData(buffer, w, h, GL_RED);
 
 		}
 
