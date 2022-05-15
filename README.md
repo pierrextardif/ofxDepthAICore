@@ -40,7 +40,17 @@ Alternatively you can change the path of ofxDepthai-Core to your own, by changin
 
 <br>
 
-6) Run the `cmake ..` command from one of the examples .For example, for the [NeuralNetworkExample](./NeuralNetworkExample) :
+6) bump up the json version of Openframeworks to `3.9.1`.
+
+You can use Openframeworks [Apothecary](https://github.com/openframeworks/apothecary) to update it by using this [file](./Assets/apothecary/json.sh) as formulae. Clone the repo inside `OF_INSTALL//scripts/`, then copying it into your apothecary formulaes folder (`OF_INSTALL//scripts/apothecary/apothecary/formulas/`). Then copy the json 3.9.1 from `OF_INSTALL/scripts/apothecary/json/include/json.hpp` into `OF_INSTALL//libs/json/include/json.hpp`.
+
+<br>
+
+Or simply replace ``OF_INSTALL//libs/json/include/json.hpp` with this [json.hpp](./Assets/json/json.hpp).
+
+<br>
+
+7) Run the `cmake ..` command from one of the examples .For example, for the [NeuralNetworkExample](./NeuralNetworkExample) :
 
 ```sh
 cd NeuralNetworkExample
@@ -50,7 +60,7 @@ cmake ..
 
 You should get an ouutput close to [this one](./Assets/outputLogs/cmakeNN.log)
 
-7) Run the example.
+8) Run the example.
 
 <br>
 
