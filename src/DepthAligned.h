@@ -28,9 +28,7 @@ namespace ofxDepthAICore{
 			std::shared_ptr<dai::node::StereoDepth> stereo;
 
 
-    		std::unordered_map<std::string, cv::Mat> frame;
-
-			
+    		std::unordered_map<std::string, cv::Mat> frame;			
 			std::unordered_map<std::string, std::unique_ptr<ofxDepthAICore::DepthAITexConverter > > textures;
     		
 			std::string loadVertShader();
