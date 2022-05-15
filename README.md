@@ -35,7 +35,7 @@ Results for NeuralNetwork Example (Semantic Segmentation with depth ):
 
 <br>
 
-Alternatively you can change the path of ofxDepthai-Core to your own, by changing this line.
+Alternatively you can change the path of ofxDepthai-Core to your own, by changing [this line](https://github.com/pierrextardif/ofxDepthAICore/blob/main/ofxDepthAICore.cmake#L43).
 
 
 <br>
