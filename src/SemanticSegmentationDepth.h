@@ -28,12 +28,13 @@ namespace ofxDepthAICore{
 			std::shared_ptr<dai::node::ImageManip> croppingManip;
 			std::shared_ptr<dai::node::ImageManip> resizingManip;
 
-			std::shared_ptr<dai::DataOutputQueue> qRgb, qNN;
+			std::shared_ptr<dai::DataOutputQueue>qNN;
 
     		std::unordered_map<std::string, cv::Mat> frame;			
 			std::unordered_map<std::string, std::unique_ptr<ofxDepthAICore::DepthAITexConverter > > textures;
 
-			std::unique_ptr<ofxDepthAICore::DepthAITexConverter> colorTexture, NNTexture;
+			// lets put NN texture seperatly
+			std::unique_ptr<ofxDepthAICore::DepthAITexConverter> NNTexture;
 
 
 			float maxDisparity;

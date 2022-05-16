@@ -11,7 +11,6 @@ namespace ofxDepthAICore{
 	SemanticSegmentationDepth::~SemanticSegmentationDepth()
 	{
 
-        //waitForThread(false);
 	}
 
 
@@ -123,12 +122,10 @@ namespace ofxDepthAICore{
 		}
 
 		
-		qRgb = device->getOutputQueue("rgb", 4, false);
 		qNN = device->getOutputQueue("segmentation", 4, false);
 		qNN->setBlocking(false);
 		
 
-		colorTexture = std::make_unique<ofxDepthAICore::DepthAITexConverter>();
 		NNTexture = std::make_unique<ofxDepthAICore::DepthAITexConverter>();
 		NNTexture->channels = 1;
 
@@ -150,72 +147,55 @@ namespace ofxDepthAICore{
 
 	void SemanticSegmentationDepth::update()
 	{
-		// std::unique_lock<std::mutex> lock(mutex);
-		if(qRgb){
-			std::shared_ptr<dai::ImgFrame> inRgb = qRgb->tryGet<dai::ImgFrame>();
+		std::shared_ptr<dai::NNData> inNN = qNN->tryGet<dai::NNData>();
+		if(inNN)
+		{
+			NNTexture->updateNNBuffer(inNN, nnSize);
+			NNTexture->updateTexture();
+		}
 
-			if(inRgb)
-			{
-				colorTexture->updateBuffer(inRgb);
-				colorTexture->updateTexture();
-
-			}
-
-			std::shared_ptr<dai::NNData> inNN = qNN->tryGet<dai::NNData>();
-			if(inNN)
-			{
-				NNTexture->updateNNBuffer(inNN, nnSize);
-				NNTexture->updateTexture();
-			}
-
-        	std::unordered_map<std::string, std::shared_ptr<dai::ImgFrame>> latestPacket;
-			auto queueEvents = device->getQueueEvents(queueNames);
-			for(const auto& name : queueEvents) {
-				auto packets = device->getOutputQueue(name)->tryGetAll<dai::ImgFrame>();
-				auto count = packets.size();
-				if(count > 0) {
-					latestPacket[name] = packets[count - 1];
-				}
-			}
-
-			for(const auto& name : queueNames) {
-				if(latestPacket.find(name) != latestPacket.end()) {
-					if(name == "depth") {
-						frame[name] = latestPacket[name]->getFrame();
-						if(1) frame[name].convertTo(frame[name], CV_8UC1, 255. / maxDisparity);
-						if(textures[name]==nullptr){
-							textures[name] = std::make_unique<ofxDepthAICore::DepthAITexConverter>();
-						}
-
-						// keep this 3 channels for Raspberry pi use.
-            			if(frame[name].channels() < 3) {
-                			cv::cvtColor(frame[name], frame[name], cv::COLOR_GRAY2RGB);
-						}
-						textures[name]->updateBuffer(&frame[name], latestPacket[name]->getWidth(), latestPacket[name]->getHeight());
-					} else {
-						frame[name] = latestPacket[name]->getCvFrame();
-						if(textures[name]==nullptr){
-							textures[name] = std::make_unique<ofxDepthAICore::DepthAITexConverter>();
-						}
-						textures[name]->updateBuffer(&frame[name], latestPacket[name]->getWidth(), latestPacket[name]->getHeight());
-					}
-				}
-			}
-			for(const auto& name : queueNames) {
-				if(textures[name] != nullptr)textures[name]->updateTexture();
+		std::unordered_map<std::string, std::shared_ptr<dai::ImgFrame>> latestPacket;
+		auto queueEvents = device->getQueueEvents(queueNames);
+		for(const auto& name : queueEvents) {
+			auto packets = device->getOutputQueue(name)->tryGetAll<dai::ImgFrame>();
+			auto count = packets.size();
+			if(count > 0) {
+				latestPacket[name] = packets[count - 1];
 			}
 		}
 
+		for(const auto& name : queueNames) {
+			if(latestPacket.find(name) != latestPacket.end()) {
+				if(name == "depth") {
+					frame[name] = latestPacket[name]->getFrame();
+					frame[name].convertTo(frame[name], CV_8UC1, 255. / maxDisparity);
+					if(textures[name]==nullptr){
+						textures[name] = std::make_unique<ofxDepthAICore::DepthAITexConverter>();
+					}
+
+					// keep this 3 channels for Raspberry pi use.
+					if(frame[name].channels() < 3) {
+						cv::cvtColor(frame[name], frame[name], cv::COLOR_GRAY2RGB);
+					}
+					textures[name]->updateBuffer(&frame[name], latestPacket[name]->getWidth(), latestPacket[name]->getHeight());
+				} else {
+					frame[name] = latestPacket[name]->getCvFrame();
+					if(textures[name]==nullptr){
+						textures[name] = std::make_unique<ofxDepthAICore::DepthAITexConverter>();
+					}
+					textures[name]->updateBuffer(&frame[name], latestPacket[name]->getWidth(), latestPacket[name]->getHeight());
+				}
+			}
+		}
+		for(const auto& name : queueNames) {
+			if(textures[name] != nullptr)textures[name]->updateTexture();
+		}
 	}
 
 	void SemanticSegmentationDepth::draw()
 	{
 
 		semanticDepthShader.begin();
-        
-		if(colorTexture != nullptr)semanticDepthShader.setUniformTexture("rgb", colorTexture->tex, 0);
-		if(NNTexture != nullptr)semanticDepthShader.setUniformTexture("mask", NNTexture->tex, 1);
-		semanticDepthShader.setUniform2f("u_cropResize", cropResize);
 		
 		if(arbTex)
 		{
@@ -229,8 +209,11 @@ namespace ofxDepthAICore{
 
 		}
 
+        
+		if(NNTexture != nullptr)semanticDepthShader.setUniformTexture("mask", NNTexture->tex, 0);
+		semanticDepthShader.setUniform2f("u_cropResize", cropResize);
 
-		int indexTex = 2;
+		int indexTex = 1;
 		semanticDepthShader.setUniform1f("u_disparity", maxDisparity );
 		for(const auto& name : queueNames) {
 			if(textures[name] != nullptr){

@@ -17,9 +17,10 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 
-    ofBackground(0, 0, 10);
+    ofBackground(0, 0, 4);
     ofEnableDepthTest();
     cam.begin();
+    ofRotateYRad(ofGetElapsedTimef());
     ofScale(1.0);
     depthAICoreTest->draw();
     cam.end();
