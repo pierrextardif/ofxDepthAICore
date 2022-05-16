@@ -1,5 +1,5 @@
 # ofxDepthAICore
-[DepthAI-Core](https://github.com/luxonis/depthai-core) addon for [Openframeworks](https://openframeworks.cc/)
+[DepthAI-Core](https://github.com/luxonis/depthai-core) starting point addon for [Openframeworks](https://openframeworks.cc/).
 
 <br>
 <br>
